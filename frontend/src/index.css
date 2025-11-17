@@ -1,11 +1,27 @@
+@font-face {
+  font-family: 'Graphik';
+  src: url('./font/Graphik_Family/Graphik-Bold-Trial.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Graphik';
+  src: url('./font/Graphik_Family/Graphik-Bold-Trial.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Graphik';
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #213547;
+  background-color: #f1f8fc;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -24,10 +40,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 h1 {
