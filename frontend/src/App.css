@@ -1,42 +1,107 @@
+/* ==================== CONTENEUR PRINCIPAL ==================== */
 #root {
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
+  background-color: #F1F8FC;
+  h2{ color: #384050}
 }
- /* Boutton */
+
+/* ==================== BOUTONS ==================== */
 .btn-custom {
   background-color: #0074C7;
-  color: white;
+  color: #F1F8FC;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
 }
 
 .btn-custom:hover {
-  background-color: #005fa3;
-  color: white;
+  background-color: #00497C;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* ==================== SECTION ÉTAPES (HOME) ==================== */
+
+/* Conteneur de la section avec fond gris clair */
+.steps-section {
+  background-color: #F1F8FC;
+  border-radius: 8px;
+  padding: 2rem 0;
+}
+
+/* Bloc contenant numéro + carte */
+.step-item {
+  min-height: 180px;
+  height: 100%;
+}
+
+/* Carte bleue arrondie contenant la description */
+.step-card {
+  background-color: #0074C7;
+  color: #F1F8FC;
+  border-radius: 18px;
+  min-height: 180px;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Grand numéro à gauche de la carte */
+.step-number {
+  font-size: 160px;
+  font-weight: 800;
+  line-height: 1;
+  color: #384050;
+  z-index: 0;
+  pointer-events: none;
+  flex-shrink: 0;
+  text-align: center;
+  width: 80px;
+}
+
+/* Titre dans la carte */
+.step-card h3 {
+  color: #F1F8FC;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Texte descriptif dans la carte */
+.step-card p {
+  color: #F1F8FC;
+  line-height: 1.5;
+}
+
+/* ==================== RESPONSIVE - PETITS ÉCRANS ==================== */
+@media (max-width: 767.98px) {
+  /* Réduire la taille des numéros sur mobile */
+  .step-number {
+    font-size: 160px;
+    width: 160px;
   }
-  to {
-    transform: rotate(360deg);
+
+  /* Adapter les cartes pour mobile */
+  .step-card {
+    min-height: 140px;
+    height: 100%;
+    border-radius: 14px;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  /* Bloc contenant numéro + carte */
+  .step-item {
+    min-height: 140px;
+    height: 100%;
   }
-}
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  /* Réduire le padding de la section */
+  .steps-section {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
