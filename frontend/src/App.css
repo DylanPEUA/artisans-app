@@ -4,7 +4,10 @@
   margin: 0 auto;
   padding: 2rem;
   background-color: #F1F8FC;
-  h2{ color: #384050}
+}
+
+#root h2 {
+  color: #384050;
 }
 
 /* ==================== BOUTONS ==================== */
