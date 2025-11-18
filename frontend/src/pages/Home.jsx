@@ -142,7 +142,6 @@ export default function Home() {
                   <div className="mb-3 small" style={{ color: "#384050" }}>
                     <div>{artisan.address.street}</div>
                     <div>{artisan.address.zip} {artisan.address.city}</div>
-                    <div>{artisan.address.country}</div>
                   </div>
 
                   {/* Bouton de contact */}
