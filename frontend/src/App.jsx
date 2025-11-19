@@ -21,7 +21,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/artisans" element={<List />} />
           <Route path="/artisans/:id" element={<ArtisanDetail />} />
-          <Route path="/category/:categoryName" element={<Category />} />
+          <Route path="/category" element={<Category />} />
+          <Route path="/category/:categoryName" element={<List />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

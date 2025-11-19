@@ -1,4 +1,6 @@
 import React from "react";
+import ArtisanCard from '../components/ArtisanCard';
+import { Link } from "react-router-dom";
 
 export default function Home() {
   // Données des étapes pour trouver un artisan
@@ -99,7 +101,9 @@ export default function Home() {
 
         {/* Bouton d'action centré */}
         <div className="text-center mt-5">
-          <button className="btn-custom">Trouver mon artisan</button>
+          <Link to="/category">
+            <button className="btn-custom">Trouver mon artisan</button>
+          </Link>
         </div>
       </section>
 
@@ -112,46 +116,7 @@ export default function Home() {
 
         {/* Grille des artisans (3 colonnes) */}
         <div className="row gx-4 gy-5 justify-content-center">
-          {artisans.map((artisan) => (
-            <div key={artisan.id} className="col-md-4">
-              {/* Carte artisan */}
-              <div className="artisan-card rounded overflow-hidden shadow">
-
-                {/* Contenu de la carte */}
-                <div className="p-4" style={{ backgroundColor: '#F1F8FC' }}>
-
-                  {/* Nom de l'artisan */}
-                  <h3 className="h6 fw-bold mb-2" style={{ color: '#384050' }}>
-                    {artisan.name}
-                  </h3>
-
-                  {/* Catégorie */}
-                  <p className="mb-3 small" style={{ color: '#0074C7' }}>
-                    {artisan.category}
-                  </p>
-
-                  {/* Note et avis */}
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <div className="stars" style={{ color: '#FFC107' }}>
-                      ★ {artisan.rating}
-                    </div>
-                    <span className="small text-muted">({artisan.reviews} avis)</span>
-                  </div>
-
-                  {/* Adresse */}
-                  <div className="mb-3 small" style={{ color: "#384050" }}>
-                    <div>{artisan.address.street}</div>
-                    <div>{artisan.address.zip} {artisan.address.city}</div>
-                  </div>
-
-                  {/* Bouton de contact */}
-                  <button className="btn-custom w-100">
-                    Contacter
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+          {artisans.map(a => <ArtisanCard key={a.id} artisan={a} />)}
         </div>
       </section>
     </>
