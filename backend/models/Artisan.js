@@ -1,12 +1,12 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db'); // ou db.test.js
+const { sequelize } = require('../config/db'); 
 
 const Artisan = sequelize.define('Artisan', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
   email: { type: DataTypes.STRING, allowNull: false, unique: true },
-  phone: { type: DataTypes.STRING }
-  // categoryId: { type: DataTypes.INTEGER, allowNull: true }, // futur
+  phone: { type: DataTypes.STRING },
+  categoryId: { type: DataTypes.INTEGER, allowNull: true }
   // specialityId: { type: DataTypes.INTEGER, allowNull: true } // futur
 }, {
   tableName: 'artisans',
