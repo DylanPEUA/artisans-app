@@ -1,12 +1,9 @@
 const Artisan = require('./Artisan');
-// const Category = require('./Category'); // futur
-// const Speciality = require('./Speciality'); // futur
+const Category = require('./Category');
+// const Speciality = require('./Speciality');
 
-// Relations (exemple futur)
-// Category.hasMany(Artisan, { foreignKey: 'categoryId' });
-// Artisan.belongsTo(Category, { foreignKey: 'categoryId' });
+Category.hasMany(Artisan, { foreignKey: 'categoryId', as: 'artisans' });
+Artisan.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
 
-// Speciality.hasMany(Artisan, { foreignKey: 'specialityId' });
-// Artisan.belongsTo(Speciality, { foreignKey: 'specialityId' });
-
-module.exports = { Artisan /*, Category, Speciality */ };
+// module.exports
+module.exports = { Artisan, Category /*, Speciality */ };
