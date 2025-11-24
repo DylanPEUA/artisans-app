@@ -10,9 +10,12 @@ const artisanRoutes = require('./routes/artisans.js');
 const categoryRoutes = require('./routes/categories');
 const specialityRoutes = require('./routes/specialities');
 
+// Importer le middleware d'authentification
+const authMiddleware = require('./middleware/authMiddleware');
+
 const { Artisan, Category } = require('./models');
 // Importer la fonction pour tester la DB
-const { testAndSync } = require('./config/db.js'); // ou ./config/db.js
+const { testAndSync } = require('./config/db.js');
 
 // Créer l'application Express
 const app = express();
@@ -24,13 +27,16 @@ const PORT = process.env.PORT || 4000;
 // Middleware pour parser le JSON
 app.use(bodyParser.json());
 
+// Route test racine (sans authentification)
+app.get('/', (req, res) => res.send('API running...'));
+
+// Appliquer le middleware d'authentification pour toutes les routes /api
+app.use('/api/', authMiddleware);
+
 // Routes
 app.use('/api/artisans', require('./routes/artisans'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/specialities', require('./routes/specialities'));
-
-// Route test racine
-app.get('/', (req, res) => res.send('API running...'));
 
 // Synchroniser la table et démarrer le serveur
 sequelize = require('./config/db').sequelize;
