@@ -1,78 +1,116 @@
-const Artisan = require('../models/Artisan');
-const Category = require('../models/Category'); 
+const { Op, Sequelize } = require('sequelize');
 
-// GET all artisans
+let Artisan, Category, Speciality, sequelize;
+try {
+  ({ Artisan, Category, Speciality, sequelize } = require('../models'));
+} catch (e) {
+  Artisan = require('../models/Artisan');
+  try { Category = require('../models/Category'); } catch {}
+  try { Speciality = require('../models/Speciality'); } catch {}
+  try { sequelize = require('../config/db').sequelize; } catch {}
+}
+
+/**
+ * Helper pour construire les conditions de recherche
+ * Gère les filtres par catégorie, spécialité et recherche par nom/ville
+ */
+const buildWhere = (query) => {
+  const where = {};
+  const extra = [];
+
+  if (query.categoryId) {
+    const cid = parseInt(query.categoryId, 10);
+    if (!Number.isNaN(cid)) {
+      where.categoryId = cid;
+      if (sequelize) extra.push(Sequelize.where(Sequelize.col('category_id'), cid));
+    }
+  }
+
+  if (query.specialityId) {
+    const sid = parseInt(query.specialityId, 10);
+    if (!Number.isNaN(sid)) {
+      where.specialityId = sid;
+      if (sequelize) extra.push(Sequelize.where(Sequelize.col('speciality_id'), sid));
+    }
+  }
+
+  if (query.search) {
+    const s = query.search.trim();
+    if (s) {
+      where[Op.or] = [
+        { name: { [Op.like]: `%${s}%` } },
+        { city: { [Op.like]: `%${s}%` } }
+      ];
+    }
+  }
+
+  if (extra.length) {
+    return { [Op.and]: [where, ...extra] };
+  }
+
+  return where;
+};
+
+/**
+ * GET all artisans with optional filters
+ * Supports filtering by categoryId, specialityId, and search
+ */
 exports.getAllArtisans = async (req, res) => {
   try {
-    const artisans = await Artisan.findAll({
-      include: [{ model: Category, as: 'category' }]
+    const where = buildWhere(req.query);
+
+    const include = [];
+    if (Category) include.push({ model: Category, as: 'category' });
+    if (Speciality) include.push({ model: Speciality, as: 'speciality' });
+
+    const rows = await Artisan.findAll({
+      where,
+      include,
+      order: [['id', 'ASC']]
     });
-    res.json(artisans);
+
+    res.setHeader('Content-Type', 'application/json');
+    res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('getAllArtisans error', err);
+    res.status(500).json({
+      error: 'Failed to retrieve artisans',
+      message: err.message || 'Server error'
+    });
   }
 };
 
-// GET artisan by ID
+/**
+ * GET artisan by ID with associated category and speciality
+ */
 exports.getArtisanById = async (req, res) => {
   try {
-    const artisan = await Artisan.findByPk(req.params.id)
-    if (!artisan) return res.status(404).json({ error: 'Artisan not found' });
-    res.json(artisan);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    const id = parseInt(req.params.id, 10);
 
-// CREATE artisan (avec findOrCreate + update si déjà existant)
-exports.createArtisan = async (req, res) => {
-  try {
-    const [artisan, created] = await Artisan.findOrCreate({
-      where: { email: req.body.email }, // recherche par email
-      defaults: req.body               // création si email non existant
-    });
-
-    if (!created && req.body.categoryId) {
-      // Met à jour la catégorie si l'artisan existait déjà
-      await artisan.update({ categoryId: req.body.categoryId });
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: 'Invalid artisan ID'
+      });
     }
 
-    return res.status(created ? 201 : 200).json({
-      artisan,
-      message: created ? 'Artisan created successfully' : 'Artisan already exists, updated if needed'
-    });
-  } catch (err) {
-    console.error('CREATE ARTISAN ERROR:', err);
+    const include = [];
+    if (Category) include.push({ model: Category, as: 'category' });
+    if (Speciality) include.push({ model: Speciality, as: 'speciality' });
 
-    if (err.name === 'SequelizeValidationError') {
-      const details = err.errors ? err.errors.map(e => e.message) : [err.message];
-      return res.status(400).json({ error: 'Validation error', details });
+    const artisan = await Artisan.findByPk(id, { include });
+
+    if (!artisan) {
+      return res.status(404).json({
+        error: 'Artisan not found'
+      });
     }
 
-    return res.status(500).json({ error: err.message || 'Internal server error' });
-  }
-};
-
-// UPDATE artisan
-exports.updateArtisan = async (req, res) => {
-  try {
-    const artisan = await Artisan.findByPk(req.params.id);
-    if (!artisan) return res.status(404).json({ error: 'Artisan not found' });
-    await artisan.update(req.body);
     res.json(artisan);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({
+      error: 'Failed to retrieve artisan',
+      message: err.message
+    });
   }
 };
 
-// DELETE artisan
-exports.deleteArtisan = async (req, res) => {
-  try {
-    const artisan = await Artisan.findByPk(req.params.id);
-    if (!artisan) return res.status(404).json({ error: 'Artisan not found' });
-    await artisan.destroy();
-    res.json({ message: 'Artisan deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
