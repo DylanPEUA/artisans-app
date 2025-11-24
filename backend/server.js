@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 // Importer les routes
 const artisanRoutes = require('./routes/artisans.js');
 const categoryRoutes = require('./routes/categories');
-//const specialityRoutes = require('./routes/specialities');
+const specialityRoutes = require('./routes/specialities');
 
 const { Artisan, Category } = require('./models');
 // Importer la fonction pour tester la DB
@@ -16,6 +16,7 @@ const { testAndSync } = require('./config/db.js'); // ou ./config/db.js
 
 // Créer l'application Express
 const app = express();
+app.use(express.json());
 
 // Configurer le port
 const PORT = process.env.PORT || 4000;
@@ -24,9 +25,9 @@ const PORT = process.env.PORT || 4000;
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/artisans', artisanRoutes);
-app.use('/api/categories', categoryRoutes);
-//app.use('/api/specialities', specialityRoutes);
+app.use('/api/artisans', require('./routes/artisans'));
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/specialities', require('./routes/specialities'));
 
 // Route test racine
 app.get('/', (req, res) => res.send('API running...'));

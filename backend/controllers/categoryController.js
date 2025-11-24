@@ -1,61 +1,61 @@
 const Category = require('../models/Category');
 const Artisan = require('../models/Artisan');
 
-// GET all categories
-exports.getAllCategories = async (req, res) => {
+/**
+ * GET all categories with associated artisans
+ */
+async function getAllCategories(req, res) {
   try {
     const categories = await Category.findAll({
+      include: [{ model: Artisan, as: 'artisans' }],
+      order: [['id', 'ASC']]
+    });
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json(categories);
+  } catch (err) {
+    console.error('getAllCategories error:', err);
+    return res.status(500).json({
+      error: 'Failed to retrieve categories',
+      message: err.message || 'Server error'
+    });
+  }
+}
+
+/**
+ * GET category by ID with associated artisans
+ */
+async function getCategoryById(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: 'Invalid category ID'
+      });
+    }
+
+    const category = await Category.findByPk(id, {
       include: [{ model: Artisan, as: 'artisans' }]
     });
-    res.json(categories);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
-// GET category by ID
-exports.getCategoryById = async (req, res) => {
-  try {
-    const category = await Category.findByPk(req.params.id, {
-      include: [{ model: Artisan, as: 'artisans' }]
+    if (!category) {
+      return res.status(404).json({
+        error: 'Category not found'
+      });
+    }
+
+    return res.json(category);
+  } catch (err) {
+    console.error('getCategoryById error:', err);
+    return res.status(500).json({
+      error: 'Failed to retrieve category',
+      message: err.message || 'Server error'
     });
-    if (!category) return res.status(404).json({ error: 'Category not found' });
-    res.json(category);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-};
+}
 
-// CREATE category
-exports.createCategory = async (req, res) => {
-  try {
-    const category = await Category.create(req.body);
-    res.status(201).json(category);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-// UPDATE category
-exports.updateCategory = async (req, res) => {
-  try {
-    const category = await Category.findByPk(req.params.id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
-    await category.update(req.body);
-    res.json(category);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-// DELETE category
-exports.deleteCategory = async (req, res) => {
-  try {
-    const category = await Category.findByPk(req.params.id);
-    if (!category) return res.status(404).json({ error: 'Category not found' });
-    await category.destroy();
-    res.json({ message: 'Category deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+module.exports = {
+  getAllCategories,
+  getCategoryById
 };
