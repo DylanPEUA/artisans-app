@@ -11,48 +11,62 @@ const LOCAL_ARTISANS = [
 ];
 
 export default function Category() {
-  const { categoryName } = useParams(); // ex: "menuiserie"
-  const decoded = categoryName ? decodeURIComponent(categoryName) : null;
+  const { categoryName } = useParams(); // ex: "menuiserie" ou ID
   const [artisans, setArtisans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoryTitle, setCategoryTitle] = useState("");
 
   useEffect(() => {
     let mounted = true;
-    if (!decoded) {
-      // si pas de param, rediriger vers liste de catégories ou afficher message
-      setArtisans([]);
-      setLoading(false);
-      return;
-    }
 
-    // Requête API : on suppose endpoint /artisans?category=menuiserie (case-insensitive selon serveur)
-    api.get("/artisans", { params: { category: decoded } })
-      .then((res) => {
-        if (mounted) {
-          // si API renvoie vide, tu peux fallback sur LOCAL_ARTISANS filtrés
-          const data = Array.isArray(res.data) ? res.data : [];
-          if (data.length) setArtisans(data);
-          else {
-            // fallback local filtering (insensible à la casse)
-            const fallback = LOCAL_ARTISANS.filter(a => (a.category || "").toLowerCase() === (decoded || "").toLowerCase());
-            setArtisans(fallback);
+    const fetchData = async () => {
+      if (!categoryName) {
+        setArtisans([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Récupère d'abord les catégories pour trouver l'ID
+        const categoriesRes = await api.get("/categories");
+        
+        if (!mounted) return;
+
+        if (Array.isArray(categoriesRes.data)) {
+          // Cherche la catégorie qui correspond au slug
+          const category = categoriesRes.data.find(c => 
+            c.name.toLowerCase().replace(/\s+/g, "-") === categoryName.toLowerCase()
+          );
+
+          if (category && mounted) {
+            setCategoryTitle(category.name);
+            
+            // Récupère les artisans de cette catégorie
+            const artisansRes = await api.get("/artisans", { params: { categoryId: category.id } });
+            
+            if (mounted) {
+              setArtisans(Array.isArray(artisansRes.data) ? artisansRes.data : []);
+            }
+          } else if (mounted) {
+            setArtisans([]);
           }
         }
-      })
-      .catch(() => {
-        if (mounted) {
-          const fallback = LOCAL_ARTISANS.filter(a => (a.category || "").toLowerCase() === (decoded || "").toLowerCase());
-          setArtisans(fallback);
-        }
-      })
-      .finally(() => { if (mounted) setLoading(false); });
+      } catch (err) {
+        console.error("Erreur:", err);
+        if (mounted) setArtisans([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchData();
 
     return () => { mounted = false; };
-  }, [decoded]);
+  }, [categoryName]);
 
   return (
     <main className="container py-4">
-      {!decoded ? (
+      {!categoryName ? (
         <>
           <h1 className="h4">Catégories</h1>
           <p>Choisissez une catégorie pour voir les artisans.</p>
@@ -61,18 +75,17 @@ export default function Category() {
       ) : (
         <>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h1 className="h4 mb-0">Artisans — {decoded}</h1>
+            <h1 className="h4 mb-0">Artisans — {categoryTitle}</h1>
             <Link to="/category" className="btn btn-outline-secondary">Retour aux catégories</Link>
           </div>
 
           {loading ? (
             <p>Chargement…</p>
           ) : artisans.length === 0 ? (
-            <p>Aucun artisan trouvé pour la catégorie <strong>{decoded}</strong>.</p>
+            <p>Aucun artisan trouvé pour la catégorie <strong>{categoryTitle}</strong>.</p>
           ) : (
             <div className="row gx-4 gy-4">
               {artisans.map(a => (
-                // ArtisanCard attend un objet artisan comme dans Home
                 <ArtisanCard key={a.id} artisan={a} />
               ))}
             </div>
