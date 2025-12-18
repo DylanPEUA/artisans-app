@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ArtisanCard from '../components/ArtisanCard';
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 export default function Home() {
+  const [artisans, setArtisans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   // Données des étapes pour trouver un artisan
   const steps = [
     {
@@ -31,45 +36,36 @@ export default function Home() {
     },
   ];
 
-  // Données des artisans du mois
-  const artisans = [
-    {
-      id: 1,
-      name: "Alix Marchand",
-      category: "Sculpteuse",
-      rating: 4.8,
-      reviews: 24,
-      address: {
-        street: "20 rue des Arts-et-Métiers",
-        city: "Grenoble",
-        zip: "38026"
+  /**
+   * Récupère les artisans avec top = 1 depuis l'API backend
+   */
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchArtisans = async () => {
+      try {
+        const response = await api.get("/artisans");
+        if (mounted) {
+          // Filtre seulement les artisans avec top = 1
+          const topArtisans = response.data.filter(artisan => artisan.top === 1);
+          setArtisans(topArtisans);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          console.error("Erreur chargement artisans:", err);
+          setError("Impossible de charger les artisans");
+          setArtisans([]);
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
-    },
-    {
-      id: 2,
-      name: "Martin Lefen",
-      category: "Ébéniste",
-      rating: 4.9,
-      reviews: 32,
-      address: {
-        street: "30 avenue Jean Mermoz",
-        city: "Clermont-Ferrand",
-        zip: "63100"
-      }
-    },
-    {
-      id: 3,
-      name: "Jeanne Peau",
-      category: "Cordonnière",
-      rating: 4.7,
-      reviews: 18,
-      address: {
-        street: "3 rue de Genève",
-        city: "Lyon",
-        zip: "69006"
-      }
-    },
-  ];
+    };
+
+    fetchArtisans();
+
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <>
@@ -114,10 +110,33 @@ export default function Home() {
           Les trois artisans du mois
         </h2>
 
+        {/* État de chargement */}
+        {loading && (
+          <div className="text-center">
+            <p>Chargement des artisans…</p>
+          </div>
+        )}
+
+        {/* État d'erreur */}
+        {error && !loading && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+
         {/* Grille des artisans (3 colonnes) */}
-        <div className="row gx-4 gy-5 justify-content-center">
-          {artisans.map(a => <ArtisanCard key={a.id} artisan={a} />)}
-        </div>
+        {!loading && !error && artisans.length > 0 && (
+          <div className="row gx-4 gy-5 justify-content-center">
+            {artisans.map(a => <ArtisanCard key={a.id} artisan={a} />)}
+          </div>
+        )}
+
+        {/* Message si aucun artisan */}
+        {!loading && !error && artisans.length === 0 && (
+          <div className="text-center">
+            <p>Aucun artisan disponible pour le moment</p>
+          </div>
+        )}
       </section>
     </>
   );
