@@ -51,6 +51,11 @@ const Artisan = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       field: 'speciality_id'
+    },
+    top: {
+      type: DataTypes.TINYINT,
+      allowNull: true,
+      defaultValue: 0
     }
   },
   {

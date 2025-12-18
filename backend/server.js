@@ -4,31 +4,30 @@ require('dotenv').config();
 // Importer Express et Body-Parser
 const express = require('express');
 const bodyParser = require('body-parser');
-
-// Importer les routes
-const artisanRoutes = require('./routes/artisans.js');
-const categoryRoutes = require('./routes/categories');
-const specialityRoutes = require('./routes/specialities');
+const cors = require('cors');
 
 // Importer le middleware d'authentification
 const authMiddleware = require('./middleware/authMiddleware');
 
-const { Artisan, Category } = require('./models');
 // Importer la fonction pour tester la DB
 const { testAndSync } = require('./config/db.js');
+const { sequelize } = require('./config/db');
 
 // Créer l'application Express
 const app = express();
-app.use(express.json());
 
 // Configurer le port
 const PORT = process.env.PORT || 4000;
 
-// Middleware pour parser le JSON
+// Middlewares
+app.use(cors());
+app.use(express.json());
 app.use(bodyParser.json());
 
 // Route test racine (sans authentification)
-app.get('/', (req, res) => res.send('API running...'));
+app.get('/', (req, res) => {
+  res.json({ message: 'API running...' });
+});
 
 // Appliquer le middleware d'authentification pour toutes les routes /api
 app.use('/api/', authMiddleware);
@@ -38,10 +37,21 @@ app.use('/api/artisans', require('./routes/artisans'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/specialities', require('./routes/specialities'));
 
-// Synchroniser la table et démarrer le serveur
-sequelize = require('./config/db').sequelize;
-sequelize.sync({ force: true }) // créer la table si elle n'existe pas
-  .then(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
-  })
-  .catch(err => console.error('❌ DB sync failed:', err));
+/**
+ * Démarre le serveur avec synchronisation de la BD
+ */
+const startServer = async () => {
+  try {
+    // Teste la connexion et synchronise les modèles
+    await testAndSync();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
+  }
+};
+
+startServer();
