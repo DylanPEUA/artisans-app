@@ -279,18 +279,3 @@ npm run build
 ```
 
 ---
-
-## 🤝 Contribution
-
-Pour toute question ou amélioration, consultez la documentation ou créez une issue.
-
----
-
-## 📞 Support
-
-**Problème Backend ?** → Consultez `backend/README.md`  
-**Problème Frontend ?** → Consultez `frontend/README.md`
-
----
-
-**Créé avec ❤️ pour les artisans de la région Auvergne-Rhône-Alpes**
