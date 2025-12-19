@@ -1,77 +1,115 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
+/**
+ * Header
+ * Composant d'en-tête principal avec logo, menu de navigation,
+ * barre de recherche et menu mobile.
+ *
+ * @returns {JSX.Element} En-tête de l'application
+ */
 export default function Header() {
-  // Éléments du menu de navigation
   const menuItems = ['Bâtiment', 'Services', 'Fabrication', 'Alimentation'];
   
-  // Suggestions de recherche prédéfinies
-  const searchSuggestions = ['Alix Marchand', 'Martin Lefen', 'Jeanne Peau', 'Alain Gerter', 'Lara Picart'];
-  
-  // États pour gérer l'affichage et la valeur de la barre de recherche
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  
-  // État pour gérer l'affichage du menu hamburger
+  const [artisans, setArtisans] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
 
-  // Affiche les suggestions au focus de l'input
-  const handleSearchFocus = () => {
+  /**
+   * Récupère les 5 premiers artisans de l'API au focus de la barre de recherche
+   */
+  const handleSearchFocus = async () => {
     setShowSuggestions(true);
+    try {
+      const response = await api.get('/artisans');
+      setArtisans(response.data.slice(0, 5));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des artisans:', error);
+    }
   };
 
-  // Cache les suggestions au blur de l'input (avec délai pour éviter le flickering)
+  /**
+   * Cache les suggestions avec un délai pour éviter le flickering
+   */
   const handleSearchBlur = () => {
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
-  // Remplir l'input avec la suggestion cliquée et cache la liste
-  const handleSuggestionClick = (suggestion) => {
-    setSearchValue(suggestion);
+  /**
+   * Remplit le champ de recherche avec le nom de l'artisan sélectionné
+   * @param {string} artisanName - Nom de l'artisan
+   */
+  const handleArtisanClick = (artisanName) => {
+    setSearchValue(artisanName);
     setShowSuggestions(false);
   };
 
   return (
     <>
-      {/* Header principal */}
+      {/* === En-tête principal === */}
       <header className="d-flex align-items-center justify-content-between p-3 border-bottom">
         <LogoSection />
         <DesktopMenu menuItems={menuItems} />
         <SearchBar 
           searchValue={searchValue}
-          searchSuggestions={searchSuggestions}
+          artisans={artisans}
           showSuggestions={showSuggestions}
           onFocus={handleSearchFocus}
           onBlur={handleSearchBlur}
           onChange={(e) => setSearchValue(e.target.value)}
-          onSuggestionClick={handleSuggestionClick}
+          onArtisanClick={handleArtisanClick}
         />
         <HamburgerButton showMenu={showMenu} setShowMenu={setShowMenu} />
       </header>
 
-      {/* Menu mobile déroulant */}
+      {/* === Menu mobile === */}
       {showMenu && <MobileMenu menuItems={menuItems} setShowMenu={setShowMenu} />}
     </>
   );
 }
 
-// ==================== COMPOSANTS ==================== 
+// ==================== COMPOSANTS ====================
 
-// Composant du logo
+/**
+ * LogoSection
+ * Affiche le logo cliquable qui redirige vers la page d'accueil
+ *
+ * @returns {JSX.Element} Section du logo
+ */
 function LogoSection() {
+  const navigate = useNavigate();
+
   return (
-    <div className="d-flex flex-column text-end ps-3" style={{ lineHeight: '1.2', minWidth: '200px' }}>
-      <h1 className="h5 mb-0 fw-bolder" style={{ color: '#384050' }}>
-        Trouve ton artisan !
-      </h1>
-      <p className="mb-0 fw-bolder" style={{ color: '#0074C7', fontSize: '0.8rem' }}>
-        Avec la région<br />Auvergne-Rhône-Alpes
-      </p>
+    <div 
+      className="d-flex align-items-center ps-3" 
+      style={{ cursor: 'pointer' }} 
+      onClick={() => navigate('/')}
+    >
+      <img
+        src="/src/img/Logo.png"
+        alt="Logo Trouve ton artisan"
+        style={{ height: '150px', width: 'auto' }}
+      />
     </div>
   );
 }
 
-// Menu desktop
+/**
+ * DesktopMenu
+ * Affiche le menu de navigation des catégories (visible sur desktop)
+ *
+ * @param {string[]} menuItems - Liste des catégories
+ * @returns {JSX.Element} Menu de navigation desktop
+ */
 function DesktopMenu({ menuItems }) {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (category) => {
+    navigate(`/category/${category}`);
+  };
+
   return (
     <nav className="d-none d-md-flex align-items-center justify-content-center gap-3 p-3 flex-grow-1">
       {menuItems.map((item) => (
@@ -79,6 +117,7 @@ function DesktopMenu({ menuItems }) {
           key={item}
           className="btn-custom"
           aria-label={`Catégorie ${item}`}
+          onClick={() => handleCategoryClick(item)}
         >
           {item}
         </button>
@@ -87,18 +126,38 @@ function DesktopMenu({ menuItems }) {
   );
 }
 
-// Barre de recherche
+/**
+ * SearchBar
+ * Barre de recherche avec suggestions d'artisans
+ *
+ * @param {string} searchValue - Valeur actuelle de la recherche
+ * @param {Object[]} artisans - Liste des 5 premiers artisans
+ * @param {boolean} showSuggestions - Affiche les suggestions
+ * @param {Function} onFocus - Callback au focus
+ * @param {Function} onBlur - Callback au blur
+ * @param {Function} onChange - Callback au changement
+ * @param {Function} onArtisanClick - Callback au clic sur un artisan
+ * @returns {JSX.Element} Barre de recherche
+ */
 function SearchBar({ 
   searchValue, 
-  searchSuggestions, 
+  artisans, 
   showSuggestions, 
   onFocus, 
   onBlur, 
   onChange, 
-  onSuggestionClick 
+  onArtisanClick 
 }) {
+  const navigate = useNavigate();
+
+  const handleArtisanNavigate = (artisanId) => {
+    navigate(`/artisans/${artisanId}`);
+    onArtisanClick('');
+  };
+
   return (
     <div className="position-relative" style={{ minWidth: '150px', maxWidth: '250px' }}>
+      {/* === Conteneur de la barre === */}
       <div 
         className="d-flex align-items-center gap-2 p-2"
         style={{
@@ -124,17 +183,17 @@ function SearchBar({
         />
       </div>
 
-      {/* Liste des suggestions */}
-      {showSuggestions && (
+      {/* === Liste des artisans === */}
+      {showSuggestions && artisans.length > 0 && (
         <ul className="list-group position-absolute w-100 mt-2" style={{ zIndex: 1000 }}>
-          {searchSuggestions.map((suggestion) => (
+          {artisans.map((artisan) => (
             <li
-              key={suggestion}
+              key={artisan.id}
               className="list-group-item"
-              onMouseDown={() => onSuggestionClick(suggestion)}
+              onMouseDown={() => handleArtisanNavigate(artisan.id)}
               style={{ cursor: 'pointer' }}
             >
-              {suggestion}
+              {artisan.name}
             </li>
           ))}
         </ul>
@@ -143,7 +202,14 @@ function SearchBar({
   );
 }
 
-// Bouton hamburger
+/**
+ * HamburgerButton
+ * Bouton hamburger pour afficher/masquer le menu mobile
+ *
+ * @param {boolean} showMenu - État du menu mobile
+ * @param {Function} setShowMenu - Fonction pour modifier l'état
+ * @returns {JSX.Element} Bouton hamburger
+ */
 function HamburgerButton({ showMenu, setShowMenu }) {
   return (
     <button
@@ -161,17 +227,34 @@ function HamburgerButton({ showMenu, setShowMenu }) {
   );
 }
 
-// Menu mobile
+/**
+ * MobileMenu
+ * Menu de navigation des catégories pour mobile
+ *
+ * @param {string[]} menuItems - Liste des catégories
+ * @param {Function} setShowMenu - Fonction pour masquer le menu
+ * @returns {JSX.Element} Menu mobile
+ */
 function MobileMenu({ menuItems, setShowMenu }) {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (category) => {
+    navigate(`/category/${category}`);
+    setShowMenu(false);
+  };
+
   return (
-    <nav className="d-md-none w-100" style={{ backgroundColor: '#F1F8FC', borderBottom: '2px solid #384050' }}>
+    <nav 
+      className="d-md-none w-100" 
+      style={{ backgroundColor: '#F1F8FC', borderBottom: '2px solid #384050' }}
+    >
       <div className="d-flex flex-column gap-2 p-3">
         {menuItems.map((item) => (
           <button
             key={item}
             className="btn-custom w-100"
             aria-label={`Catégorie ${item}`}
-            onClick={() => setShowMenu(false)}
+            onClick={() => handleCategoryClick(item)}
           >
             {item}
           </button>
