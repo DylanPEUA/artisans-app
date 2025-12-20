@@ -261,21 +261,3 @@ npm run lint     # Linting
 
 ---
 
-## 🚀 Déploiement
-
-### Backend (Heroku, Railway, etc.)
-```bash
-# Ensure environment variables are set
-# PORT, DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, API_KEY
-
-npm run build
-npm start
-```
-
-### Frontend (Vercel, Netlify, etc.)
-```bash
-npm run build
-# Servez le dossier dist
-```
-
----
