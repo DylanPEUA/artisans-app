@@ -1,0 +1,39 @@
+-- =========================
+-- STRUCTURE DE LA BASE
+-- =========================
+
+-- Table categories
+CREATE TABLE categories (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table specialities
+CREATE TABLE specialities (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table artisans
+CREATE TABLE artisans (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  rating DECIMAL(2,1) NULL,
+  city VARCHAR(100) NULL,
+  description TEXT NULL,
+  website VARCHAR(255) NULL,
+  category_id INT NULL,
+  speciality_id INT NULL,
+  top BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Colonnes automatiques Sequelize
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
