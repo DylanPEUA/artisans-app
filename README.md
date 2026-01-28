@@ -57,8 +57,28 @@ Ce projet est une plateforme complète composée d'un **frontend React** et d'un
 - Node.js v18+
 - MySQL 8.0+
 - npm ou yarn
+- MySQL Workbench (recommandé)
 
-### Backend
+### 1. Configuration de la base de données
+
+#### Étape 1 : Créer la structure
+Exécutez le fichier `Création de la base de donnée.sql` dans MySQL Workbench.
+Cela va créer :
+- La base de données `ara_artisans`
+- Les tables `artisans`, `categories`, `specialities`
+- La table temporaire `import_artisans_temp`
+
+#### Étape 2 : Importer les données CSV
+1. Dans MySQL Workbench, clic droit sur la table `import_artisans_temp`
+2. Sélectionnez **Table Data Import Wizard**
+3. Choisissez le fichier `import_artisans_temp.csv`
+4. Configurez le séparateur : `;` (point-virgule)
+5. Terminez l'import
+
+#### Étape 3 : Alimenter les tables
+Exécutez le fichier `Alimentation de la base de donnée.sql` dans MySQL Workbench.
+
+### 2. Backend
 
 ```bash
 # Accéder au dossier backend
@@ -67,24 +87,23 @@ cd backend
 # Installer les dépendances
 npm install
 
-# Créer le fichier .env
-cat > .env << EOF
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=artisans_db
-DB_PORT=3306
-API_KEY=UneCleApiTrèsSecrete
-PORT=4000
-EOF
+# Configurer le fichier .env (déjà présent, à adapter si besoin)
+# Les valeurs par défaut :
+# PORT=4000
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_NAME=ara_artisans
+# DB_USER=root
+# DB_PASS=
+# API_KEY=UneCleApiTrèsSecrete
 
 # Démarrer le serveur
-npm run dev
+npm start
 ```
 
 Le backend sera disponible sur `http://localhost:4000`
 
-### Frontend
+### 3. Frontend
 
 ```bash
 # Accéder au dossier frontend
@@ -92,12 +111,6 @@ cd frontend
 
 # Installer les dépendances
 npm install
-
-# Créer le fichier .env
-cat > .env << EOF
-VITE_API_URL=http://localhost:4000/api
-VITE_API_KEY=UneCleApiTrèsSecrete
-EOF
 
 # Démarrer le serveur de développement
 npm run dev
@@ -111,7 +124,11 @@ L'application sera disponible sur `http://localhost:5173`
 
 ```
 artisans-app/
+├── Création de la base de donnée.sql  # Script création BDD
+├── Alimentation de la base de donnée.sql  # Script insertion données
+├── import_artisans_temp.csv           # Données CSV à importer
 ├── backend/
+│   ├── .env                     # Variables d'environnement
 │   ├── config/
 │   │   ├── auth.js              # Configuration authentification
 │   │   └── db.js                # Configuration base de données
@@ -134,6 +151,7 @@ artisans-app/
 │   └── package.json
 │
 ├── frontend/
+│   ├── .env                     # Variables d'environnement
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Header.jsx       # En-tête
@@ -160,30 +178,85 @@ artisans-app/
 
 ---
 
+## 🗄️ Structure de la base de données
+
+### Table `artisans`
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | INT | Clé primaire |
+| name | VARCHAR(255) | Nom de l'artisan |
+| email | VARCHAR(255) | Email |
+| phone | VARCHAR(50) | Téléphone |
+| rating | DECIMAL(2,1) | Note (ex: 4.5) |
+| city | VARCHAR(100) | Ville |
+| description | TEXT | Description |
+| website | VARCHAR(255) | Site web |
+| category_id | INT | FK vers categories |
+| speciality_id | INT | FK vers specialities |
+| top | BOOLEAN | Artisan mis en avant |
+
+### Table `categories`
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | INT | Clé primaire |
+| name | VARCHAR(255) | Nom (Alimentation, Bâtiment, etc.) |
+| description | TEXT | Description |
+
+### Table `specialities`
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | INT | Clé primaire |
+| name | VARCHAR(255) | Nom (Boulanger, Plombier, etc.) |
+| description | TEXT | Description |
+
+---
+
 ## 🔀 API Routes
 
 ### Artisans
 ```
-GET    /api/artisans              # Tous les artisans
-GET    /api/artisans/:id         # Un artisan
+GET    /api/artisans                    # Tous les artisans
+GET    /api/artisans/:id                # Un artisan par ID
+GET    /api/artisans?categoryId=1       # Filtrer par catégorie
+GET    /api/artisans?specialityId=2     # Filtrer par spécialité
+GET    /api/artisans?search=Lyon        # Rechercher par nom/ville
 ```
 
 ### Catégories
 ```
-GET    /api/categories            # Toutes les catégories
-GET    /api/categories/:id       # Une catégorie
+GET    /api/categories                  # Toutes les catégories
+GET    /api/categories/:id              # Une catégorie par ID
 ```
 
 ### Spécialités
 ```
-GET    /api/specialities          # Toutes les spécialités
-GET    /api/specialities/:id     # Une spécialité
+GET    /api/specialities                # Toutes les spécialités
+GET    /api/specialities/:id            # Une spécialité par ID
 ```
 
 **En-têtes requis :**
 ```
 X-API-Key: UneCleApiTrèsSecrete
 Content-Type: application/json
+```
+
+---
+
+## 🧪 Tests avec Postman
+
+### Configuration
+1. Créez une nouvelle requête
+2. URL : `http://localhost:4000/api/artisans`
+3. Ajoutez le header : `X-API-Key: UneCleApiTrèsSecrete`
+4. Envoyez la requête
+
+### Exemples de requêtes
+```
+GET http://localhost:4000/api/artisans
+GET http://localhost:4000/api/artisans/1
+GET http://localhost:4000/api/artisans?categoryId=1
+GET http://localhost:4000/api/categories
+GET http://localhost:4000/api/specialities
 ```
 
 ---
@@ -222,24 +295,24 @@ Le backend accepte les requêtes du frontend via CORS.
 ## 🐛 Débogage
 
 ### Backend ne démarre pas
-```bash
-# Vérifier MySQL
-mysql -u root
 
-# Vérifier les variables d'environnement
-cat backend/.env
+**Erreur "Access denied for user"**
+- Vérifiez le mot de passe MySQL dans `backend/.env`
+- Pour XAMPP/WAMP, le mot de passe par défaut est souvent vide : `DB_PASS=`
 
-# Vérifier les dépendances
-npm install
-```
+**Erreur "Database does not exist"**
+- Exécutez `Création de la base de donnée.sql` dans MySQL Workbench
 
 ### Frontend : "Impossible de charger les artisans"
-- Vérifier que le backend tourne sur port 4000
-- Vérifier la clé API dans `.env`
-- Ouvrir la console du navigateur (F12)
+- Vérifiez que le backend tourne sur le port 4000
+- Vérifiez la clé API dans `frontend/.env`
+- Ouvrez la console du navigateur (F12)
 
 ### Base de données vide
-Les tables sont synchronisées automatiquement avec `sequelize.sync()` au démarrage du serveur.
+Suivez les étapes d'installation de la base de données :
+1. Exécuter `Création de la base de donnée.sql`
+2. Importer `import_artisans_temp.csv` via Table Data Import Wizard
+3. Exécuter `Alimentation de la base de donnée.sql`
 
 ---
 
@@ -247,8 +320,8 @@ Les tables sont synchronisées automatiquement avec `sequelize.sync()` au démar
 
 ### Backend
 ```bash
-npm run dev      # Démarrage en développement
-npm test         # Tests (si configurés)
+npm start        # Démarrage du serveur
+npm run dev      # Démarrage en développement (si nodemon configuré)
 ```
 
 ### Frontend
@@ -260,4 +333,8 @@ npm run lint     # Linting
 ```
 
 ---
+
+## 👤 Auteur
+
+Projet réalisé dans le cadre d'une formation développeur web.
 
